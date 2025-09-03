@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manage QR Codes | KE-QR</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
+    <script src="https://unpkg.com/feather-icons"></script>
+    <script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <style>
+        .qr-code-container {
+            max-width: 300px;
+            text-align: center;
+        }
+        .gradient-bg {
+            background: linear-gradient(135deg, #000000 0%, #333333 100%);
+        }
+    </style>
+</head>
+<body class="font-sans antialiased text-gray-800">
+    <!-- Navigation -->
+    <nav class="bg-white shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center">
+                    <a href="index.html" class="flex-shrink-0 flex items-center">
+                        <div class="flex items-center">
+                            <svg class="h-8 w-8 text-blue-600" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M3 11H11V3H3V11ZM5 5H9V9H5V5Z" fill="currentColor"/>
+                                <path d="M3 21H11V13H3V21ZM5 15H9V19H5V15Z" fill="currentColor"/>
+                                <path d="M13 3V11H21V3H13ZM19 9H15V5H19V9Z" fill="currentColor"/>
+                                <path d="M19 19H17V17H19V19Z" fill="currentColor"/>
+                                <path d="M13 13H15V15H13V13Z" fill="currentColor"/>
+                                <path d="M15 15H17V17H15V15Z" fill="currentColor"/>
+                                <path d="M17 17H19V19H17V17Z" fill="currentColor"/>
+                                <path d="M13 17H15V19H13V17Z" fill="currentColor"/>
+                                <path d="M13 21H15V19H13V21Z" fill="currentColor"/>
+                                <path d="M15 19H17V21H15V19Z" fill="currentColor"/>
+                                <path d="M17 21H19V19H17V21Z" fill="currentColor"/>
+                                <path d="M21 13H19V15H21V13Z" fill="currentColor"/>
+                                <path d="M19 15H17V17H19V15Z" fill="currentColor"/>
+                                <path d="M21 17H19V19H21V17Z" fill="currentColor"/>
+                                <path d="M21 21H19V19H21V21Z" fill="currentColor"/>
+                            </svg>
+                            <span class="ml-2 text-xl font-bold text-gray-900">KE-QR</span>
+                        </div>
+                    </a>
+                </div>
+                <div class="hidden md:ml-6 md:flex md:items-center space-x-8">
+                    <a href="index.html" class="text-gray-500 hover:text-gray-900 inline-flex items-center px-1 pt-1 text-sm font-medium">Home</a>
+                    <a href="features.html" class="text-gray-900 inline-flex items-center px-1 pt-1 text-sm font-medium">Features</a>
+                    <a href="faq.html" class="text-gray-500 hover:text-gray-900 inline-flex items-center px-1 pt-1 text-sm font-medium">FAQ</a>
+                </div>
+                <div class="hidden md:ml-6 md:flex md:items-center space-x-4">
+                    <a href="login.html" class="text-gray-500 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium">Log In</a>
+                    <a href="signup.html" class="gradient-bg text-white px-4 py-2 rounded-md text-sm font-medium hover:opacity-90 transition">Sign Up</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
+        <div class="text-center mb-12">
+            <h1 class="text-3xl font-extrabold text-gray-900 sm:text-4xl">Manage Your QR Codes</h1>
+            <p class="mt-4 text-xl text-gray-600">Edit your QR content while keeping the same QR code</p>
+        </div>
+
+        <div class="bg-white shadow rounded-lg p-6 mb-8">
+            <div class="flex flex-col md:flex-row">
+                <div class="md:w-1/3 p-4 flex flex-col items-center">
+                    <div id="qr-code-preview" class="qr-code-container p-4 bg-white rounded-lg shadow-md mb-4"></div>
+                    <button id="download-qr" class="gradient-bg text-white px-4 py-2 rounded-md text-sm font-medium hover:opacity-90 transition">
+                        <i data-feather="download" class="mr-2"></i> Download QR
+                    </button>
+                </div>
+                <div class="md:w-2/3 p-4">
+                    <div class="mb-6">
+                        <label for="qr-name" class="block text-sm font-medium text-gray-700 mb-1">QR Code Name</label>
+                        <input type="text" id="qr-name" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500" value="My Business Card">
+                    </div>
+                    
+                    <div class="mb-6">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Content Type</label>
+                        <div class="flex space-x-4">
+                            <button id="type-website" class="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium bg-blue-100 text-blue-700">Website</button>
+                            <button id="type-pdf" class="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium">PDF</button>
+                            <button id="type-text" class="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium">Text</button>
+                        </div>
+                    </div>
+
+                    <div id="content-website" class="content-section">
+                        <label for="website-url" class="block text-sm font-medium text-gray-700 mb-1">Website URL</label>
+                        <input type="url" id="website-url" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500" value="https://mybusiness.com">
+                    </div>
+
+                    <div id="content-pdf" class="content-section hidden">
+                        <div class="mb-4">
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Upload PDF</label>
+                            <div class="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-md">
+                                <div class="space-y-1 text-center">
+                                    <div class="flex text-sm text-gray-600">
+                                        <label for="pdf-upload" class="relative cursor-pointer bg-white rounded-md font-medium text-blue-600 hover:text-blue-500 focus-within:outline-none">
+                                            <span>Upload a file</span>
+                                            <input id="pdf-upload" name="pdf-upload" type="file" class="sr-only" accept="application/pdf">
+                                        </label>
+                                        <p class="pl-1">or drag and drop</p>
+                                    </div>
+                                    <p class="text-xs text-gray-500">PDF up to 10MB</p>
+                                </div>
+                            </div>
+                            <div id="pdf-preview" class="hidden mt-4">
+                                <div class="flex items-center">
+                                    <i data-feather="file-text" class="text-blue-500 mr-2"></i>
+                                    <span id="pdf-name"></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="content-text" class="content-section hidden">
+                        <label for="text-content" class="block text-sm font-medium text-gray-700 mb-1">Text Content</label>
+                        <textarea id="text-content" rows="4" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">Contact Info:
+John Doe
+CEO, My Business
+john@mybusiness.com
++1 (555) 123-4567</textarea>
+                    </div>
+
+                    <div class="mt-6">
+                        <button id="save-changes" class="gradient-bg text-white px-4 py-2 rounded-md text-sm font-medium hover:opacity-90 transition">
+                            <i data-feather="save" class="mr-2"></i> Save Changes
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white shadow rounded-lg p-6">
+            <h2 class="text-xl font-semibold text-gray-900 mb-4">QR Code Analytics</h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div class="bg-blue-50 p-4 rounded-lg">
+                    <div class="text-blue-800 font-medium">Total Scans</div>
+                    <div class="text-3xl font-bold mt-2">1,248</div>
+                </div>
+                <div class="bg-green-50 p-4 rounded-lg">
+                    <div class="text-green-800 font-medium">Last Scan</div>
+                    <div class="text-xl font-medium mt-2">2 hours ago</div>
+                </div>
+                <div class="bg-purple-50 p-4 rounded-lg">
+                    <div class="text-purple-800 font-medium">Unique Devices</div>
+                    <div class="text-3xl font-bold mt-2">843</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        AOS.init();
+        feather.replace();
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const qrId = urlParams.get('qr');
+            const docId = urlParams.get('doc');
+            
+            let currentQR = qrId ? qrCodes[qrId] : null;
+            let currentDoc = docId ? documentStorage[docId] : null;
+
+            // Initialize new QR if needed
+            if (!currentQR && currentDoc) {
+                currentQR = {
+                    id: 'qr_' + Date.now(),
+                    content: `${window.location.origin}/qr-management.html?doc=${docId}`,
+                    type: 'pdf',
+                    documentId: docId,
+                    documentName: currentDoc.name,
+                    created: new Date().toISOString(),
+                    scans: 0
+                };
+                qrCodes[currentQR.id] = currentQR;
+                window.history.replaceState({}, '', `qr-management.html?qr=${currentQR.id}`);
+            }
+
+            // Generate initial QR code
+            const qr = qrcode(0, 'L');
+            qr.addData(currentQR ? currentQR.content : 'https://mybusiness.com');
+            qr.make();
+            document.getElementById('qr-code-preview').innerHTML = qr.createImgTag(8);
+
+            // Set initial form values
+            if (currentQR) {
+                document.getElementById('qr-name').value = currentQR.documentName || 'My QR Code';
+                
+                if (currentQR.type === 'pdf') {
+                    document.getElementById('type-pdf').click();
+                } else if (currentQR.type === 'text') {
+                    document.getElementById('type-text').click();
+                } else {
+                    document.getElementById('type-website').click();
+                    document.getElementById('website-url').value = currentQR.content;
+                }
+            }
+
+            // Content type switching
+            const contentTypes = ['website', 'pdf', 'text'];
+            contentTypes.forEach(type => {
+                document.getElementById(`type-${type}`).addEventListener('click', function() {
+                    contentTypes.forEach(t => {
+                        const btn = document.getElementById(`type-${t}`);
+                        const section = document.getElementById(`content-${t}`);
+                        if (t === type) {
+                            btn.classList.add('bg-blue-100', 'text-blue-700');
+                            section.classList.remove('hidden');
+                        } else {
+                            btn.classList.remove('bg-blue-100', 'text-blue-700');
+                            section.classList.add('hidden');
+                        }
+                    });
+                });
+            });
+
+            // Download QR code
+            document.getElementById('download-qr').addEventListener('click', function() {
+                const qrImg = document.querySelector('#qr-code-preview img');
+                const link = document.createElement('a');
+                link.href = qrImg.src;
+                link.download = 'my-qr-code.png';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            });
+
+            // PDF upload handling
+            const pdfUpload = document.getElementById('pdf-upload');
+            pdfUpload.addEventListener('change', async function(e) {
+                const file = e.target.files[0];
+                if (file) {
+                    if (file.size > 10 * 1024 * 1024) {
+                        alert('File size too large. Please upload a PDF under 10MB.');
+                        return;
+                    }
+                    
+                    const documentId = 'doc_' + Date.now();
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        documentStorage[documentId] = {
+                            name: file.name,
+                            data: e.target.result,
+                            type: file.type,
+                            size: file.size
+                        };
+                        
+                        // Update UI
+                        document.getElementById('pdf-name').textContent = file.name;
+                        document.getElementById('pdf-preview').classList.remove('hidden');
+                        
+                        // Update current QR
+                        if (!currentQR) {
+                            currentQR = {
+                                id: 'qr_' + Date.now(),
+                                content: `${window.location.origin}/qr-management.html?doc=${documentId}`,
+                                type: 'pdf',
+                                documentId: documentId,
+                                documentName: file.name,
+                                created: new Date().toISOString(),
+                                scans: 0
+                            };
+                            qrCodes[currentQR.id] = currentQR;
+                        } else {
+                            currentQR.content = `${window.location.origin}/qr-management.html?doc=${documentId}`;
+                            currentQR.documentId = documentId;
+                            currentQR.documentName = file.name;
+                        }
+                        
+                        // Update QR code
+                        const qr = qrcode(0, 'L');
+                        qr.addData(currentQR.content);
+                        qr.make();
+                        document.getElementById('qr-code-preview').innerHTML = qr.createImgTag(8);
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+
+            // Save changes
+            document.getElementById('save-changes').addEventListener('click', function() {
+                if (!currentQR) return;
+                
+                let newContent = '';
+                if (document.getElementById('type-website').classList.contains('bg-blue-100')) {
+                    newContent = document.getElementById('website-url').value;
+                    currentQR.type = 'website';
+                } else if (document.getElementById('type-pdf').classList.contains('bg-blue-100')) {
+                    if (!currentQR.documentId) {
+                        alert('Please upload a PDF file first');
+                        return;
+                    }
+                    newContent = currentQR.content;
+                    currentQR.type = 'pdf';
+                } else {
+                    newContent = document.getElementById('text-content').value;
+                    currentQR.type = 'text';
+                }
+                
+                currentQR.content = newContent;
+                currentQR.documentName = document.getElementById('qr-name').value;
+                
+                // Update QR code display
+                const qr = qrcode(0, 'L');
+                qr.addData(newContent);
+                qr.make();
+                document.getElementById('qr-code-preview').innerHTML = qr.createImgTag(8);
+
+                alert('Your changes have been saved! The QR code remains the same but now points to your updated content.');
+            });
+
+            // Update analytics display
+            if (currentQR) {
+                document.querySelector('.bg-blue-50 .text-3xl').textContent = currentQR.scans;
+                document.querySelector('.bg-purple-50 .text-3xl').textContent = Math.floor(currentQR.scans * 0.7);
+            }
+        });
+    </script>
+</body>
+</html>
